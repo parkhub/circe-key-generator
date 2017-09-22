@@ -1,53 +1,59 @@
-import uuid from 'uuid/v4';
+import simpleFlow from './lib/simpleFlow';
+import complexFlow from './lib/complexFlow';
 
-function generateKeyFromProp(keyPropValue, overrideKeyProp) {
-  if (!keyPropValue) {
-    return uuid();
-  }
-
-  return overrideKeyProp ? uuid() : keyPropValue;
-}
-
-function generateResult(topicCfg, params) {
-  const { keyProp, overrideKeyProp = false } = topicCfg;
-  const { message } = params;
-
-  if (!keyProp) {
-    return { ...params, key: uuid() };
-  }
-
-  const keyPropValue = message[keyProp];
-  const key = generateKeyFromProp(keyPropValue, overrideKeyProp);
-
-  const newMessage = { ...message, ...{ [keyProp]: key } };
-
-  return { ...params, ...{ message: newMessage }, key };
-}
+// function generateKeyFromProp(keyPropValue, overrideKeyProp) {
+//   if (!keyPropValue) {
+//     return uuid();
+//   }
+//
+//   return overrideKeyProp ? uuid() : keyPropValue;
+// }
+//
+// function generateMessageAndKey(topicCfg: TopicCfg, currentMessage: Message) {
+//   const { keyProp, overrideKeyProp = false } = topicCfg;
+//
+//   if (!keyProp) {
+//     return { key: uuid() };
+//   }
+//
+//   const keyPropValue = currentMessage[keyProp];
+//   const key = generateKeyFromProp(keyPropValue, overrideKeyProp);
+//
+//   const newMessage = Object.assign({}, currentMessage, { [keyProp]: key });
+//
+//   return { message: newMessage, key };
+// }
 
 export default function keyGenerator(cfgs) {
   const cfgMap = cfgs.reduce((map, cfg) => {
     if (typeof cfg === 'string') {
-      map.set(cfg, {});
+      map.set(cfg, { flowType: 'simple' });
 
       return map;
     }
 
-    const { topic, ...restOfCfgs } = cfg;
+    const { topic, ...complexCfgs } = cfg;
 
-    map.set(topic, restOfCfgs);
+    map.set(topic, { flowType: 'complex', complexCfgs });
 
     return map;
   }, new Map());
 
-  return (params, next) => {
-    const { topic } = params;
+  return (publishCfgs, next) => {
+    const { topic } = publishCfgs;
 
     const topicCfg = cfgMap.get(topic);
 
     if (topicCfg == null) {
-      return next({ ...params });
+      return next({ ...publishCfgs });
     }
 
-    return next(generateResult(topicCfg, params));
+    const { flowType, complexCfgs } = topicCfg;
+
+    if (flowType === 'simple') {
+      return simpleFlow(publishCfgs, next);
+    }
+
+    return complexFlow(publishCfgs, complexCfgs, next);
   };
 }
