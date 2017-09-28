@@ -78,33 +78,33 @@ describe('Message is an object', () => {
       expect(next).toHaveBeenCalledWith({ ...publishCfgs, message: expectedMessage, key });
     });
 
-    // test('Should use the value in keyProp if no key is passed and value exists', () => {
-    //   const next = jest.fn();
-    //   const topic = 'COMPLEX_TOPIC';
-    //   const key = 'IM A GIRAFFE';
-    //
-    //   const complexCfgs = {
-    //     keyProp: 'whatAmI'
-    //   };
-    //
-    //   const message = {
-    //     whatAmI: key,
-    //     bestEver: 'Leo'
-    //   };
-    //
-    //   const publishCfgs = {
-    //     topic,
-    //     message
-    //   };
-    //
-    //   complexFlow(publishCfgs, complexCfgs, next);
-    //
-    //   const expectedMessage = {
-    //     whatAmI: key,
-    //     bestEver: 'Leo'
-    //   };
-    //
-    //   expect(next).toHaveBeenCalledWith({ ...publishCfgs, message: expectedMessage, key });
-    // });
+    test('Should use the value in keyProp if no key is passed and value exists', () => {
+      const next = jest.fn();
+      const topic = 'COMPLEX_TOPIC';
+      const key = 'IM A GIRAFFE';
+
+      const complexCfgs = {
+        keyProp: 'whatAmI'
+      };
+
+      const message = {
+        whatAmI: key,
+        bestEver: 'Leo'
+      };
+
+      const publishCfgs = {
+        topic,
+        message
+      };
+
+      complexFlow(publishCfgs, complexCfgs, next);
+
+      const expectedMessage = {
+        whatAmI: key,
+        bestEver: 'Leo'
+      };
+
+      expect(next).toHaveBeenCalledWith({ ...publishCfgs, message: expectedMessage, key });
+    });
   });
 });
